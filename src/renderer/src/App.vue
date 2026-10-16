@@ -49,6 +49,7 @@ const sync = useSyncStore();
 const lyricsBackground = useCoverBackground(() => player.lyricsOpen ? player.state.song?.cover : undefined);
 const closeToTray = ref(false);
 const isDesktop = Boolean(window.desktop);
+const appVersion = ref('');
 const desktopSettingsBusy = ref(true);
 const desktopSettingsError = ref("");
 async function loadDesktopSettings() {
@@ -70,6 +71,7 @@ function refreshOnFocus() { if (document.visibilityState !== "hidden") void sync
 watch([() => route.fullPath, () => account.session.profile?.userId], () => { void sync.refresh("page"); }, { immediate: true });
 let disposeScrollbars: (() => void) | undefined;
 onMounted(() => {
+  void window.desktop?.getVersion().then(version => { appVersion.value = version; }).catch(() => {});
   disposeScrollbars = installAutoScrollbars();
   void account.restore();
   void loadDesktopSettings();
@@ -341,7 +343,7 @@ watch(() => player.lyricsOpen, async (open) => {
           <p v-if="desktopSettingsError" class="inline-error" role="alert">{{ desktopSettingsError }}</p>
           <StorageSettings />
           <div class="setting-row">
-            <span>Easy Music</span><span>v0.1.0</span>
+            <span>Easy Music</span><span>{{ appVersion ? `v${appVersion}` : '开发预览' }}</span>
           </div>
           <div v-if="account.session.authenticated" class="setting-row">
             <span>{{ account.session.profile?.nickname || "已登录账号" }}</span

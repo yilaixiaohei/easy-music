@@ -2,16 +2,56 @@
 !include LogicLib.nsh
 !include nsDialogs.nsh
 !include MUI2.nsh
+!include FileFunc.nsh
+; Keep the installation folder spelling consistent with the ZIP and EXE.
+!ifdef APP_FILENAME
+  !undef APP_FILENAME
+!endif
+!define APP_FILENAME "EasyMusic"
 !macro customInstallMode
   StrCpy $isForceCurrentInstall "1"
 !macroend
 
 !ifndef BUILD_UNINSTALLER
   !macro customPageAfterChangeDir
+    ; Replace the builder's substring check with a final-folder check. A parent
+    ; such as EasyMusicDownloads must still get its own EasyMusic subdirectory.
+    !undef MUI_PAGE_CUSTOMFUNCTION_PRE
+    !define MUI_PAGE_CUSTOMFUNCTION_PRE EasyMusicInstFilesPre
     Page custom EasyMusicStoragePage EasyMusicStorageLeave
   !macroend
 
+  Function EasyMusicInstFilesPre
+    Call EasyMusicNormalizeInstallDir
+    ; Keep the builder's callback linked, but retain our exact destination even
+    ; when upgrading a legacy directory with a different name.
+    Push $INSTDIR
+    Call instFilesPre
+    Pop $INSTDIR
+  FunctionEnd
+
+  Function EasyMusicNormalizeInstallDir
+    Push $0
+    ; Preserve existing installations (including older custom folder names).
+    ${If} ${FileExists} "$INSTDIR\EasyMusic.exe"
+    ${AndIf} ${FileExists} "$INSTDIR\resources\app.asar"
+      Goto em_directory_done
+    ${EndIf}
+    em_directory_trim:
+      StrCpy $0 "$INSTDIR" 1 -1
+      StrCmp $0 "\" 0 em_directory_name
+      StrCpy $INSTDIR "$INSTDIR" -1
+      Goto em_directory_trim
+    em_directory_name:
+      ${GetFileName} "$INSTDIR" $0
+      StrCmp $0 "EasyMusic" em_directory_done
+      StrCpy $INSTDIR "$INSTDIR\EasyMusic"
+    em_directory_done:
+    Pop $0
+  FunctionEnd
+
   Function EasyMusicStoragePage
+    Call EasyMusicNormalizeInstallDir
     !insertmacro MUI_HEADER_TEXT "程序与数据目录" "登录状态、设置和缓存都保存在安装目录旁的 data 文件夹。"
     nsDialogs::Create 1018
     Pop $0

@@ -10,6 +10,8 @@ build/.lyric-controls-smoke/
 build/.installer-files.nsh
 build/.installer-smoke/
 build/.storage-test-*/
+build/.single-instance-smoke/
+build/.single-instance-test-*/
 build/exe-icon-check.png
 docs/ENVIRONMENT.md
 docs/PLAYLIST_SUBSCRIBE_COMPARISON.md

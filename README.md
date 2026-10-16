@@ -16,6 +16,7 @@
 - 经典歌词与默认的沉浸歌词页面；逐行歌词、译文开关、字号调整和点击歌词跳转。
 - 未登录时显示本地最近播放，登录后显示账号最近播放；重启后恢复队列与进度，保持暂停。
 - 系统托盘、可选的关闭窗口后继续播放、缓存占用查看与清理。
+- 同一数据目录只运行一份程序，重复启动会唤起原窗口；不同目录的独立副本、开发版与发行版可同时运行。
 - 网络缓存上限可选 256 MB、512 MB（默认）、1 GB 和无限制，完全退出并重新启动后生效。
 
 ## 下载和使用
@@ -24,8 +25,10 @@
 
 | 版本 | 文件名示例 | 使用方式 |
 | --- | --- | --- |
-| ZIP 解压版 | `EasyMusic-0.1.0-win-x64.zip` | 完整解压，运行 `EasyMusic.exe` |
-| 安装版 | `EasyMusic-Setup-0.1.0-x64.exe` | 按安装向导选择目录，创建快捷方式 |
+| ZIP 解压版 | `EasyMusic-0.1.2-win-x64.zip` | 完整解压，进入 `EasyMusic` 文件夹运行 `EasyMusic.exe` |
+| 安装版 | `EasyMusic-Setup-0.1.2-x64.exe` | 按安装向导选择目录，创建快捷方式 |
+
+ZIP 内包含统一的 `EasyMusic/` 顶层文件夹，直接解压也不会散落文件。安装时选择父目录（如 `D:\Apps`），会自动补上 `EasyMusic`；已经选到 `EasyMusic` 时不会重复添加，覆盖已有安装时保留原目录。
 
 请使用当前用户可写的独立目录，例如 `D:\Apps\EasyMusic`。程序将数据保存在 EXE 同级的 `data` 中，请勿安装到 `Program Files` 等受保护目录。无需安装 Node.js，也无需另开 API 服务。
 
@@ -91,6 +94,7 @@ npm run package:installer # Windows x64 NSIS 安装版
 npm run check:auth       # 二维码服务与系统加密检查，需要网络
 npm run check:music      # 搜索和静音音频播放，需要网络
 npm run check:tray       # 托盘、隐藏窗口及退出行为
+npm run check:instance   # 多进程单实例、独立数据目录与播放状态检查
 npm run check:cover      # 公开封面加载与取色，需要网络
 ```
 

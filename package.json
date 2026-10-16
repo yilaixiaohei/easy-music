@@ -1,6 +1,6 @@
 {
   "name": "easy-music",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "license": "MIT",
   "author": "yilaixiaohei",
@@ -17,7 +17,7 @@
     "dev:web": "vite --config vite.web.config.ts --host 127.0.0.1",
     "typecheck": "vue-tsc --noEmit",
     "build": "npm run typecheck && electron-vite build",
-    "package:zip": "npm run build && electron-builder --win zip --x64 --publish never",
+    "package:zip": "npm run build && node scripts/package-zip.cjs",
     "package:installer": "npm run build && node scripts/package-installer.cjs",
     "build:icons": "electron scripts/generate-icons.cjs",
     "preview": "electron-vite preview",
@@ -26,6 +26,7 @@
     "check:auth": "electron scripts/smoke-auth.cjs",
     "check:music": "electron scripts/smoke-music.cjs",
     "check:tray": "electron scripts/smoke-tray.cjs",
+    "check:instance": "node scripts/smoke-single-instance.cjs",
     "check:cover": "electron scripts/smoke-cover.cjs"
   },
   "dependencies": {

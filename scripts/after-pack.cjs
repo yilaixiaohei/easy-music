@@ -15,7 +15,7 @@ module.exports = async ({ appOutDir }) => {
     '登录凭证经 Windows 加密，换电脑或系统账号后需要重新扫码。\r\n', 'utf8');
   await writeFile(join(appOutDir, '使用说明.txt'),
     (installer ? 'Easy Music · Windows 安装版\r\n\r\n' : 'Easy Music · Windows 解压版\r\n\r\n') +
-    (installer ? '1. 使用安装向导选择当前用户可写的位置，例如 D:\\Apps\\EasyMusic。请勿安装到 Program Files 等受保护目录。\r\n' : '1. 将全部内容解压到同一个可写文件夹，例如 D:\\Apps\\EasyMusic。\r\n') +
+    (installer ? '1. 选择当前用户可写的父目录，例如 D:\\Apps；向导会自动补上 EasyMusic 子目录，已选到 EasyMusic 时不重复添加。覆盖已有安装时保留原目录。请勿选择 Program Files 等受保护目录。\r\n' : '1. 压缩包自带 EasyMusic 文件夹，解压后进入该文件夹运行，例如解压到 D:\\Apps 后程序位于 D:\\Apps\\EasyMusic。\r\n') +
     '2. 双击 EasyMusic.exe 运行，无需安装 Node.js 或另开 API 服务。\r\n' +
     '3. 首次使用请扫码登录。不同目录中的程序各自保存数据。\r\n' +
     '4. 所有由应用管理的数据保存在程序旁的 data 文件夹。\r\n' +
@@ -29,6 +29,8 @@ module.exports = async ({ appOutDir }) => {
     '启动后会显示系统托盘图标（可能位于任务栏隐藏图标中）。点击图标或右键选择显示主窗口可恢复窗口。\r\n' +
     '设置中可开启关闭窗口时最小化到托盘，开启后点击 × 隐藏窗口并继续播放；默认点击 × 退出。\r\n' +
     '完整退出请右键托盘图标，选择退出 Easy Music。关闭行为保存在 data/desktop-settings.json。\r\n\r\n' +
+    '同一个数据目录仅运行一份程序。再次打开会恢复原窗口，保留当前播放和队列，不创建第二个托盘图标。\r\n' +
+    '不同安装/解压目录各自使用 data，可分别运行；开发版与发行版也相互独立。\r\n\r\n' +
     '设置 → 缓存与数据管理，可查看数据目录、网络缓存及诊断日志占用，分别清理缓存和日志，或打开数据目录。\r\n' +
     '网络缓存上限默认 512 MB，可选 256 MB、512 MB、1 GB 或无限制；修改后需完全退出再启动，最小化到托盘不会生效。该上限不包含账号数据、代码缓存、日志等。\r\n' +
     '清理保留登录状态、设置、播放记录和播放队列；服务临时文件可能含接口凭证，不作为垃圾删除。\r\n\r\n' +

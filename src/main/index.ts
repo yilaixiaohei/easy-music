@@ -10,6 +10,7 @@ import { configurePortableStorage } from "./portable";
 import { LocalHistoryStore } from "./local-history";
 import { DesktopSettingsStore, CloseToTrayController, configureCacheLimit } from "./desktop-settings";
 import { StorageManager } from './storage-manager';
+import { acquireDataInstance } from './single-instance';
 
 if (app.isPackaged) {
   try {
@@ -20,6 +21,7 @@ if (app.isPackaged) {
   }
 }
 
+const instance = acquireDataInstance(app, showMainWindow);
 const music = new MusicService();
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -215,6 +217,7 @@ app.whenReady().then(() => {
   ipcMain.handle("app:version", () => app.getVersion());
   createTray();
   createWindow();
+  instance.ready();
   app.on("activate", () => {
     showMainWindow();
   });
