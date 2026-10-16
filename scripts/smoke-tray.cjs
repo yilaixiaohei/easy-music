@@ -1,0 +1,65 @@
+// Native Electron lifecycle check using an isolated profile; no account access.
+const { app, BrowserWindow, Tray, Menu } = require('electron');
+const { mkdirSync, readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const assert = require('node:assert/strict');
+const Module = require('node:module');
+const ts = require('typescript');
+const directory = join(__dirname, '../build/.tray-smoke');
+mkdirSync(directory, { recursive: true });
+app.setPath('userData', directory);
+app.setPath('sessionData', directory);
+const source = join(__dirname, '../src/main/desktop-settings.ts');
+const compiled = ts.transpileModule(readFileSync(source, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const fixtureModule = new Module(source, module);
+fixtureModule.filename = source;
+fixtureModule.paths = module.paths;
+fixtureModule._compile(compiled, source);
+const { CloseToTrayController, DesktopSettingsStore } = fixtureModule.exports;
+let window, tray;
+const timer = setTimeout(() => { tray?.destroy(); app.exit(1); }, 15000);
+app.whenReady().then(async () => {
+  try {
+    const settings = new DesktopSettingsStore(directory);
+    settings.setCloseToTray(true);
+    const iconPath = join(__dirname, '../build/icon.ico');
+    const ico = readFileSync(iconPath);
+    const sizes = Array.from({ length: ico.readUInt16LE(4) }, (_, i) => ico[6 + i * 16] || 256);
+    for (const size of [16, 20, 24, 28, 32, 40, 48]) assert.ok(sizes.includes(size));
+    tray = new Tray(iconPath);
+    tray.setContextMenu(Menu.buildFromTemplate([{ label: '退出', click: () => app.quit() }]));
+    assert.equal(tray.isDestroyed(), false);
+    const policy = new CloseToTrayController(() => settings.read().closeToTray, () => !tray.isDestroyed());
+    window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, backgroundThrottling: false, autoplayPolicy: 'no-user-gesture-required' } });
+    window.on('close', event => policy.close(event, window));
+    await window.loadURL('data:text/html,<title>Tray lifecycle test</title>');
+    const wave = Buffer.alloc(44 + 16000);
+    wave.write('RIFF', 0); wave.writeUInt32LE(wave.length - 8, 4); wave.write('WAVEfmt ', 8);
+    wave.writeUInt32LE(16, 16); wave.writeUInt16LE(1, 20); wave.writeUInt16LE(1, 22);
+    wave.writeUInt32LE(8000, 24); wave.writeUInt32LE(16000, 28); wave.writeUInt16LE(2, 32); wave.writeUInt16LE(16, 34);
+    wave.write('data', 36); wave.writeUInt32LE(16000, 40);
+    await window.webContents.executeJavaScript(`window.audio = new Audio(${JSON.stringify('data:audio/wav;base64,' + wave.toString('base64'))}); window.audio.loop = true; window.audio.muted = true; window.audio.play();`);
+    console.log('Audio before close:', await window.webContents.executeJavaScript('JSON.stringify({paused: audio.paused, readyState: audio.readyState, error: audio.error?.code})'));
+    window.close();
+    assert.equal(window.isDestroyed(), false);
+    assert.equal(window.isVisible(), false);
+    assert.equal(await window.webContents.executeJavaScript('1 + 1'), 2);
+    console.log('Audio after close:', await window.webContents.executeJavaScript('JSON.stringify({paused: audio.paused, readyState: audio.readyState, error: audio.error?.code})'));
+    assert.equal(await window.webContents.executeJavaScript('window.audio.paused'), false);
+    console.log('PASS: native tray exists; close keeps hidden renderer and audio playing');
+    policy.beforeQuit();
+    const closed = new Promise(resolve => window.once('closed', resolve));
+    window.close();
+    await closed;
+    assert.equal(window.isDestroyed(), true);
+    tray.destroy();
+    console.log('PASS: explicit quit bypasses hide and destroys window');
+    clearTimeout(timer);
+    app.exit(0);
+  } catch (reason) {
+    console.error(reason.message);
+    clearTimeout(timer);
+    tray?.destroy();
+    app.exit(1);
+  }
+});

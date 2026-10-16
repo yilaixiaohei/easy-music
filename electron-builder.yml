@@ -1,0 +1,45 @@
+appId: com.easymusic.desktop
+productName: Easy Music
+directories:
+  output: dist
+  buildResources: build
+extraResources:
+  - from: build/icon.png
+    to: icon.png
+  - from: build/icon.ico
+    to: icon.ico
+electronDist: node_modules/electron/dist
+asar: true
+npmRebuild: false
+compression: normal
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+afterPack: scripts/after-pack.cjs
+win:
+  icon: build/icon.ico
+  target:
+    - target: zip
+      arch:
+        - x64
+  executableName: EasyMusic
+  signExecutable: false
+artifactName: EasyMusic-${version}-win-${arch}.${ext}
+nsis:
+  artifactName: EasyMusic-Setup-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Easy Music
+  uninstallDisplayName: Easy Music
+  runAfterFinish: false
+  deleteAppDataOnUninstall: false
+  installerLanguages:
+    - zh_CN
+    - en_US
+  language: '2052'
+  include: build/installer.nsh
